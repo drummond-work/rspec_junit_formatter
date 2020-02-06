@@ -71,7 +71,7 @@ private
     output << %{ name="#{escape(description_for(example))}"}
     output << %{ file="#{escape(example_group_file_path_for(example))}"}
     output << %{ time="#{escape("%.6f" % duration_for(example))}"}
-    output << %{ attempts="#{example.example.attempts.to_i}" }
+    output << %{ attempts="#{example.example.metadata[:attempts].to_i}" }
     output << %{>}
     yield if block_given?
     xml_dump_output(example)
