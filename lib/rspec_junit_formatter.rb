@@ -71,10 +71,30 @@ private
     output << %{ name="#{escape(description_for(example))}"}
     output << %{ file="#{escape(example_group_file_path_for(example))}"}
     output << %{ time="#{escape("%.6f" % duration_for(example))}"}
+    output << %{ attempts="#{example.example.attempts.to_i}" }
     output << %{>}
     yield if block_given?
     xml_dump_output(example)
+    xml_dump_retry_exceptions(example) if example.example.metadata[:retry_exceptions]
     output << %{</testcase>\n}
+  end
+
+  def xml_dump_retry_exceptions(example)
+    example.example.metadata[:retry_exceptions].each do |e|
+      output << %{<attempt}
+      output << %{ type="#{escape(e.class)}" }
+      output << %{>}
+      output << %{ #{escape(e.exception)} \n\n}
+      output << %{ #{escape(simple_backtrace(e).join("\n"))} \n\n}
+      output << %{</attempt>\n}
+    end
+  end
+
+  def simple_backtrace(exception)
+    bc = ActiveSupport::BacktraceCleaner.new
+    bc.add_silencer { |line| line =~ /ruby\/gems|rbenv/ }
+    bc.add_filter { |line| line.gsub(Rails.root.to_s, '.') }
+    bc.clean(exception.backtrace)
   end
 
   def xml_dump_output(example)
